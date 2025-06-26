@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       Int    @id @default(autoincrement())
+  name     String
+  email    String @unique
+  password String
+
+  adminLists  List[] @relation("AdminLists")
+  viewedLists List[] @relation("ViewerLists")
+
+  @@map("users")
+}
+
+model List {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  adminId Int?
+  admin   User? @relation("AdminLists", fields: [adminId], references: [id], onDelete: SetNull)
+
+  viewers User[] @relation("ViewerLists")
+
+  tasks Task[]
+
+  @@map("lists")
+}
+
+model Task {
+  id          Int     @id @default(autoincrement())
+  title       String
+  description String?
+  done        Boolean @default(false)
+
+  listId Int
+  list   List @relation(fields: [listId], references: [id], onDelete: Cascade)
+
+  @@map("tasks")
+}
