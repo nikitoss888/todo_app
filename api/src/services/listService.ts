@@ -2,6 +2,16 @@ import prisma from "../prisma";
 import ApiError from "../errors/ApiError";
 import { handleCatch } from "../util/utilities";
 
+const include = {
+	viewers: {
+		select: {
+			id: true,
+			name: true,
+			email: true,
+		},
+	},
+};
+
 // List controller main logic
 export const createList = async (name: string, userId: number) => {
 	try {
@@ -22,15 +32,7 @@ export const readOneList = async (id: number) => {
 	try {
 		return await prisma.list.findUnique({
 			where: { id },
-			include: {
-				viewers: {
-					select: {
-						id: true,
-						name: true,
-						email: true,
-					},
-				},
-			},
+			include,
 		});
 	} catch (err: unknown) {
 		return handleCatch(err);
@@ -46,6 +48,7 @@ export const updateList = async (id: number, name: string) => {
 			data: {
 				name,
 			},
+			include,
 		});
 	} catch (err: unknown) {
 		return handleCatch(err);
@@ -68,13 +71,7 @@ export const switchViewer = async (
 	try {
 		const list = await prisma.list.findUnique({
 			where: { id },
-			include: {
-				viewers: {
-					select: {
-						id: true,
-					},
-				},
-			},
+			include,
 		});
 
 		const candidate = await prisma.user.findUnique({
@@ -99,9 +96,11 @@ export const switchViewer = async (
 				viewers: {
 					...(action === "add"
 						? { connect: { id: candidate.id } }
-						: { disconnect: { id: candidate.id } }),
+						: { disconnect: { id: candidate.id } }
+					),
 				},
 			},
+			include,
 		});
 	} catch (err: unknown) {
 		return handleCatch(err);

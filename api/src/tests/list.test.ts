@@ -140,21 +140,16 @@ describe("List actions", () => {
 			expect(addRes.status).toBe(200);
 		}
 
-		const updAddRes = await api
-			.get(`${LISTS_ROUTE}/${id}`)
-			.set({ authorization: `Bearer ${token2}` })
-			.expect(200);
+		const addList = addRes.body.list;
 
-		const updAddList = updAddRes.body.list;
-
-		expect(updAddList.viewers).toBeInstanceOf(Array);
-		expect(updAddList.viewers.length).toBeGreaterThan(0);
-		expect(updAddList.viewers[0]).toMatchObject({
+		expect(addList.viewers).toBeInstanceOf(Array);
+		expect(addList.viewers.length).toBeGreaterThan(0);
+		expect(addList.viewers[0]).toMatchObject({
 			name: viewerUser.name,
 			email: viewerUser.email,
 		});
 
-		await api
+		const removeRes = await api
 			.delete(`${LISTS_ROUTE}/${id}/viewers`)
 			.send({ email: viewerUser.email })
 			.set({ authorization: `Bearer ${user.token}` })
@@ -164,15 +159,10 @@ describe("List actions", () => {
 			.get(`${LISTS_ROUTE}/${id}`)
 			.set({ authorization: `Bearer ${token2}` })
 			.expect(403);
+		
+		const removeList = removeRes.body.list;
 
-		const updRemoveRes = await api
-			.get(`${LISTS_ROUTE}/${id}`)
-			.set({ authorization: `Bearer ${user.token}` })
-			.expect(200);
-
-		const updRemoveList = updRemoveRes.body.list;
-
-		expect(updRemoveList.viewers).toBeInstanceOf(Array);
-		expect(updRemoveList.viewers.length).toBe(0);
+		expect(removeList.viewers).toBeInstanceOf(Array);
+		expect(removeList.viewers.length).toBe(0);
 	});
 });

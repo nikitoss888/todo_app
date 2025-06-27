@@ -21,7 +21,7 @@
 		"prisma:deploy": "prisma migrate deploy",
 		"prisma:studio": "prisma studio",
 		"start": "node dist/server.js",
-		"dev": "tsx --respawn --transpile-only src/server.ts",
+		"dev": "tsx watch src/server.ts",
 		"pretty:check": "prettier . --check",
 		"pretty": "prettier --write .",
 		"lint:check": "eslint .",
