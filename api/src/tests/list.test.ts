@@ -158,7 +158,7 @@ describe("List actions", () => {
 		await api
 			.get(`${LISTS_ROUTE}/${id}`)
 			.set({ authorization: `Bearer ${token2}` })
-			.expect(403);
+			.expect(404);
 		
 		const removeList = removeRes.body.list;
 
