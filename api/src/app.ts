@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import errorHandler from "./middleware/ErrorHandlingMiddleware";
 import userRouter from "./routes/userRoutes";
 import listRouter from "./routes/listRoutes";
+import auth from "./middleware/AuthMiddleware";
 
 dotenv.config();
 
@@ -17,7 +18,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/users", userRouter);
-app.use("/lists", listRouter);
+app.use("/lists", auth, listRouter);
 
 app.use(errorHandler);
 

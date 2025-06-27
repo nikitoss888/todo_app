@@ -1,8 +1,14 @@
 import { api } from "./testApp";
 import jwt from "jsonwebtoken";
-import { USERS_ROUTE, user } from "./common_data";
+import { USERS_ROUTE } from "./routes";
 
 describe("User actions", () => {
+	const user = {
+		name: "John Doe",
+		email: "john.doe@mail.com",
+		password: "12345678",
+	};
+
 	test("POST /signup - Register a new user", async () => {
 		const res = await api.post(`${USERS_ROUTE}/signup`).send(user);
 

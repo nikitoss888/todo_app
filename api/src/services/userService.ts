@@ -1,6 +1,6 @@
 import prisma from "../prisma";
 import ApiError from "../errors/ApiError";
-import { handleCatch } from "./common";
+import { handleCatch } from "../util/utilities";
 import { PartialUser } from "../types/types";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
@@ -16,19 +16,27 @@ const validate = ({
 	name: string;
 	password: string;
 }): ApiError | null => {
-	if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
-		return ApiError.badRequest("Invalid email");
+	if (!validateEmail(email))
+		return ApiError.badRequest("Invalid email pattern");
 
 	if (!name || name.length === 0)
 		return ApiError.badRequest("Name should not be empty");
 
 	if (!password || password.length < 7)
 		return ApiError.badRequest(
-			"Password should be at least 8 character long"
+			"Password should be at least 8 character long",
+			[
+				{
+					password,
+				},
+			]
 		);
 
 	return null;
 };
+
+const validateEmail = (email: string) =>
+	/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
 export const generateJwt = (user: PartialUser) => {
 	const tokenBody: PartialUser = {
@@ -79,7 +87,14 @@ export const createUser = async (
 
 		if (user) {
 			return ApiError.badRequest(
-				"User with specified email already exists"
+				"User with specified email already exists",
+				[
+					{
+						id: user.id,
+						name: user.name,
+						email: user.email,
+					},
+				]
 			);
 		}
 
@@ -102,6 +117,10 @@ export const createUser = async (
 
 export const logInUser = async (email: string, password: string) => {
 	try {
+		if (!validateEmail(email)) {
+			return ApiError.badRequest("Incorrect email pattern");
+		}
+
 		const user = await prisma.user.findUnique({
 			where: { email },
 		});

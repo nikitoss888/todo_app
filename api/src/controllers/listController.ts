@@ -4,6 +4,7 @@ import {
 	createList,
 	delList,
 	readOneList,
+	switchViewer,
 	updateList,
 } from "../services/listService";
 
@@ -17,10 +18,10 @@ export const create = async (
 
 	if (!user)
 		return next(
-			ApiError.unauthorized("Cannot create list without authorization")
+			ApiError.unauthorized("Cannot access lists without authorization")
 		);
 
-	const result = await createList(name, user);
+	const result = await createList(name, user.id);
 	if (result instanceof ApiError) return next(result);
 
 	res.status(201).json({
@@ -34,19 +35,13 @@ export const readOne = async (
 	res: Response,
 	next: NextFunction
 ) => {
-	const { id } = req.params;
-	const user = req.user;
+	const { listId } = req.params;
 
-	if (!user)
-		return next(
-			ApiError.unauthorized("Cannot create list without authorization")
-		);
-
-	const parsedId = parseInt(id);
+	const parsedId = parseInt(listId);
 	if (isNaN(parsedId))
 		return next(ApiError.badRequest("ID can be only integer number"));
 
-	const result = await readOneList(parsedId, user);
+	const result = await readOneList(parsedId);
 	if (result instanceof ApiError) {
 		return next(result);
 	}
@@ -57,21 +52,19 @@ export const readOne = async (
 	});
 };
 
-export const edit = async (req: Request, res: Response, next: NextFunction) => {
-	const { id } = req.params;
-	const user = req.user;
+export const update = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
+	const { listId } = req.params;
 	const { name } = req.body;
 
-	if (!user)
-		return next(
-			ApiError.unauthorized("Cannot create list without authorization")
-		);
-
-	const parsedId = parseInt(id);
+	const parsedId = parseInt(listId);
 	if (isNaN(parsedId))
 		return next(ApiError.badRequest("ID can be only integer number"));
 
-	const result = await updateList(parsedId, user, name);
+	const result = await updateList(parsedId, name);
 	if (result instanceof ApiError) {
 		return next(result);
 	}
@@ -87,25 +80,65 @@ export const deleteList = async (
 	res: Response,
 	next: NextFunction
 ) => {
-	const { id } = req.params;
-	const user = req.user;
+	const { listId } = req.params;
 
-	if (!user)
-		return next(
-			ApiError.unauthorized("Cannot create list without authorization")
-		);
-
-	const parsedId = parseInt(id);
+	const parsedId = parseInt(listId);
 	if (isNaN(parsedId))
 		return next(ApiError.badRequest("ID can be only integer number"));
 
-	const result = await delList(parsedId, user);
+	const result = await delList(parsedId);
 	if (result instanceof ApiError) {
 		return next(result);
 	}
 
 	res.status(200).json({
 		message: "List deleleted successfully!",
+		list: result,
+	});
+};
+
+export const addViewer = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
+	const { listId } = req.params;
+	const { email } = req.body;
+
+	const parsedId = parseInt(listId);
+	if (isNaN(parsedId))
+		return next(ApiError.badRequest("ID can be only integer number"));
+
+	const result = await switchViewer(parsedId, email, "add");
+	if (result instanceof ApiError) {
+		return next(result);
+	}
+
+	res.status(200).json({
+		message: "User added to the list successfuly!",
+		list: result,
+	});
+};
+
+export const removeViewer = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
+	const { listId } = req.params;
+	const { email } = req.body;
+
+	const parsedId = parseInt(listId);
+	if (isNaN(parsedId))
+		return next(ApiError.badRequest("ID can be only integer number"));
+
+	const result = await switchViewer(parsedId, email, "remove");
+	if (result instanceof ApiError) {
+		return next(result);
+	}
+
+	res.status(200).json({
+		message: "User removed from the list successfuly!",
 		list: result,
 	});
 };

@@ -2,8 +2,9 @@ import { NextFunction, Request, Response } from "express";
 import ApiError from "../errors/ApiError";
 import jwt from "jsonwebtoken";
 import { verifyTokenStructure } from "../services/userService";
+import prisma from "../prisma";
 
-const auth = (req: Request, _: Response, next: NextFunction) => {
+const auth = async (req: Request, _: Response, next: NextFunction) => {
 	if (req.method === "OPTIONS") {
 		next();
 	}
@@ -15,9 +16,18 @@ const auth = (req: Request, _: Response, next: NextFunction) => {
 			return next(ApiError.unauthorized("User not found"));
 		}
 
-		req.user = verifyTokenStructure(
+		const user = verifyTokenStructure(
 			jwt.verify(token, process.env.SECRET_KEY)
 		);
+		const dbUser = await prisma.user.findUnique({ where: { id: user.id } });
+
+		if (!dbUser) {
+			return next(
+				ApiError.unauthorized("No user found by the provided token")
+			);
+		}
+
+		req.user = user;
 
 		next();
 	} catch (e: unknown) {
